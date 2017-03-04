@@ -8,7 +8,7 @@ For "Antz" the basic rules are:
 when not carrying food:
 - search randomly (e.g. Gaussian randomness) ; they start from the nest.
 - if some food is found then pick it up
- -else if a 'strong enough' pheromone trail is found then try to follow it
+- else if a 'strong enough' pheromone trail is found then try to follow it
 
 when carrying food:
 - go back to the nest in the shortest possible way
