@@ -8,37 +8,37 @@ class Phero {
   PVector pos;
   float lifespan;
   float radius;
-  
+
   Phero (PVector tPos, float tRadius, float tLifespan) {
-      this.pos = tPos;
-      this.lifespan = tLifespan;
-      this.radius = tRadius;
+    this.pos = tPos;
+    this.lifespan = tLifespan;
+    this.radius = tRadius;
   }
-  
+
   void show () {
-    stroke(0, 0, 255, this.lifespan);
+    float lifeAlpha = map(this.lifespan, 0, pheroLifespanMax, 0, 255);
+    strokeWeight(2);
+    stroke(0, 0, 255, lifeAlpha);
     point(this.pos.x, this.pos.y);
   }
-  
+
   PVector getPos() {
     return this.pos.copy();
   }
-  
+
   boolean hasFaded() {
-    return (this.lifespan <= 0);  
+    return (this.lifespan <= 0);
   }
-  
+
   void update (float step) {
+    this.lifespan = (this.lifespan > (2*pheroLifespanMax)) ? (2*pheroLifespanMax) : this.lifespan;
     this.lifespan -= step;
-    this.lifespan = constrain(this.lifespan, 0, pheroLifespanMax);
   }
-  
-  void run(int idx) {
-    this.show();
+
+  boolean run() {
     this.update(pheroLifespanStep);
-    if (this.hasFaded()) {
-      phero.remove(idx);
-    }
+    boolean ret = !this.hasFaded();
+    this.show();
+    return ret;
   }
-  
 }
