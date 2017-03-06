@@ -222,7 +222,7 @@ class Ant {
         found = false;
         px = this.pos.x + (r * cos(angle));
         py = this.pos.y + (r * sin(angle));
-        apos = new PVector(px, py);
+        apos = new PVector(round(px), round(py));
         ls = pheroLifespanMax / (1 + (r*r));
         if (ls < 1) {
           break; // if lifespan too small, don't bother creating a pheromone spot
