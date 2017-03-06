@@ -12,16 +12,16 @@
 
 int nbNest = 1;
 int nbFood = 5;
-int nbAnts = 100;
+int nbAnts = 50;
 int nbObst = 2;
 
 float diamNest = 30;
 float diamFood = 50;
 float diamAnt  = 8;
-int pheroRadius = 2;
+int pheroRadius = 3;
 
-float pheroLifespanMax = 255;
-float pheroLifespanStep = 0.5;
+float pheroLifespanMax = 500;
+float pheroLifespanStep = 1;
 
 Nest[] nest = new Nest[nbNest];
 Food[] food = new Food[nbFood];
@@ -34,16 +34,16 @@ PVector nestPos;
 void setup () {
   size(500, 500, P2D);
   //frameRate(30);
-  
+
   //for (int i = 0; i < obst.length; i++) {
   //  obst[i] = new Obstacle();
   //}
-  obst[0] = new Obstacle(new PVector(150,150), new PVector(350,200));
-  obst[1] = new Obstacle(new PVector(150,300), 100);
-  
+  obst[0] = new Obstacle(new PVector(150, 150), new PVector(350, 200)); //Constructor: Line
+  obst[1] = new Obstacle(new PVector(150, 300), 100); // Constructor: Circle
+
   nest[0] = new Nest(diamNest);
   nestPos = nest[0].getPos();
-  
+
   //random position for food sources except the last one
   for (int i = 0; i < food.length-1; i++) {
     food[i] = new Food(diamFood);
@@ -57,23 +57,24 @@ void setup () {
 
 void draw () {
   background(255);
-  
+
   for (int i = 0; i < obst.length; i++) {
     obst[i].show();
   }
-  
+
   nest[0].show();
-  
+
   for (int i = 0; i < food.length; i++) {
     food[i].run();
   }
-  
-  for (int i = phero.size()-1; i >= 0 ; i--) {
-    phero.get(i).run(i);
+
+  for (int i = phero.size()-1; i >= 0; i--) {
+    if (! phero.get(i).run()) {
+      phero.remove(i);
+    }
   }
-  
+
   for (int i = 0; i < ants.length; i++) {
-     ants[i].run();
+    ants[i].run();
   }
-  
 }
