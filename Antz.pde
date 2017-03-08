@@ -11,17 +11,17 @@
 // v1 - 20170216
 
 int nbNest = 1;
-int nbFood = 5;
+int nbFood = 3;
 int nbAnts = 50;
 int nbObst = 2;
 
 float diamNest = 30;
 float diamFood = 50;
 float diamAnt  = 8;
-int pheroRadius = 3;
+int pheroRadius = 2;
 
-float pheroLifespanMax = 500;
-float pheroLifespanStep = 1;
+float pheroLifespanMax = 300.0;
+float pheroLifespanStep = 1.5;
 
 Nest[] nest = new Nest[nbNest];
 Food[] food = new Food[nbFood];
@@ -73,6 +73,9 @@ void draw () {
       phero.remove(i);
     }
   }
+
+  fill(0);
+  text(phero.size(), 10, height-10);
 
   for (int i = 0; i < ants.length; i++) {
     ants[i].run();

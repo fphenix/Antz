@@ -7,12 +7,10 @@
 class Phero {
   PVector pos;
   float lifespan;
-  float radius;
 
-  Phero (PVector tPos, float tRadius, float tLifespan) {
+  Phero (PVector tPos, float tLifespan) {
     this.pos = tPos;
     this.lifespan = tLifespan;
-    this.radius = tRadius;
   }
 
   void show () {

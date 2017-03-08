@@ -11,14 +11,14 @@ class Ant {
   boolean leftie;
   float theta; // direction
   int slices = 16;
-  float anglestep = (2*PI/slices);
+  float anglestep = (2.0*PI/slices);
 
   boolean searchFood;   // 'true' if seeking food (doesn't leave phero), 'false' if food found (leaves Phero)
   boolean diffusePhero; // always equals to NOT(searchFood) but makes the understanding easier
   boolean onPheroTrail; // 'true' if sensed a pheromone trail, else 'false'
   boolean avoiding;     // 'true' if in the process of avoiding an obstacle
 
-  float[] prob = {550, 250, 100, 50, 20, 5, 3, 1, 1, 1, 3, 5, 20, 50, 100, 250};
+  float[] prob = {550.0, 250.0, 100.0, 50.0, 20.0, 5.0, 3.0, 1.0, 1.0, 1.0, 3.0, 5.0, 20.0, 50.0, 100.0, 250.0};
   float[] cumulProb = new float[slices];
 
   Ant (float tDiam, int tSeed, PVector tPos) {
@@ -40,13 +40,13 @@ class Ant {
   }
 
   void genCumulativeProbaTable() {
-    float cumulMax = 0;
+    float cumulMax = 0.0;
     for (int i = 0; i < prob.length; i++) {
       cumulMax += prob[i];
     }
-    cumulProb[0] = prob[0] * 100 / cumulMax;
+    cumulProb[0] = prob[0] * 100.0 / cumulMax;
     for (int i = 1; i < cumulProb.length; i++) {
-      cumulProb[i] = cumulProb[i-1] + (prob[i] * 100 / cumulMax);
+      cumulProb[i] = cumulProb[i-1] + (prob[i] * 100.0 / cumulMax);
     }
   }
 
@@ -58,7 +58,7 @@ class Ant {
       nextdir ++;
     }
     angle = this.theta + (nextdir * anglestep);
-    this.theta = (angle % (2*PI)); // modulo 2.pi
+    this.theta = (angle % (2.0*PI)); // modulo 2.pi
   }
 
   boolean isOnFood(Food other) {
@@ -66,14 +66,14 @@ class Ant {
       return false;
     } else {
       float d = PVector.dist(this.pos, other.pos);
-      float rtot = (this.diam + other.getDiam()) / 2;
+      float rtot = (this.diam + other.getDiam()) / 2.0;
       return (d <= rtot);
     }
   }
 
   boolean isHome(Nest other) {
     float d = PVector.dist(this.pos, other.pos);
-    float rtot = 1; // must reach the center of the nest ; else can use : rtot = (this.diam + other.diam) / 2;
+    float rtot = 1.0; // must reach the center of the nest ; else can use : rtot = (this.diam + other.diam) / 2;
     return (d <= rtot);
   }
 
@@ -102,7 +102,7 @@ class Ant {
     float l1 = PVector.dist(p1, pm);
     float l2 = PVector.dist(pm, p2);
     float ll = PVector.dist(p1, p2);
-    float d = l1 + l2 - (ll + 4); // ll "+ <amount>" due to strokeWeigth on obstacle line
+    float d = l1 + l2 - (ll + 5.0); // ll "+ <amount>" due to strokeWeigth on obstacle line
     return (d < 1);
   }
 
@@ -110,7 +110,7 @@ class Ant {
     // A point 'P' is within a Circle of origin 'Po' if the following is true:
     // length[Po,P] <= radius
     float ll = PVector.dist(po, p);
-    float d = ll - ((diameter/2) + 3); // r "+ <amount>" 
+    float d = ll - ((diameter/2.0) + 3.0); // r "+ <amount>" 
     return (d < 1);
   }
 
@@ -121,7 +121,7 @@ class Ant {
       if (obst[i].isObstTypeLine()) {
         if (isOnObstLine(obst[i].aPoint, obst[i].bPoint, this.pos)) {
           hit = obst[i].getDir();
-          if (!(this.leftie)) {
+          if (!(this.leftie)) { // this 'leftie" thing eventually will have to be removed as it's an awful solution...
             hit.mult(-1);
           }
           this.avoiding = true;
@@ -142,47 +142,66 @@ class Ant {
     return desired;
   }
 
-  void sensePheroOrFood () {
+  float scorePhero(PVector testpos, float r) {
     PVector ppos;
+    float pd;
+    float score = 0.0;
+    for (int i = phero.size()-1; i >= 0; i--) {
+      ppos = phero.get(i).getPos();
+      pd = PVector.dist(testpos, ppos);
+      if ((pd <= r) && (pd > 1)) {
+        score += phero.get(i).lifespan;
+      }
+    }
+    return score;
+  }
+
+  PVector scoreFood (PVector testpos, float r) {
+    float d;
+    float pd;
+    PVector fvec;
+
+    for (Food currf : food) {
+      if (currf.isEmpty()) {
+        continue; // skip empty stack of food
+      }
+      d = r + (currf.getDiam() / 2.0);
+      pd = PVector.dist(testpos, currf.pos);
+      if (d > pd) {
+        fvec = PVector.sub(currf.pos, this.pos);
+        return fvec;
+      }
+    }
+    return new PVector(0, 0);
+  }
+
+  void sensePheroOrFood () {
     PVector tvec;
     PVector tpos;
     PVector fvec;
     boolean found = false;
-    float d;
     float score;
-    float bestangle = 0;
-    float bestscore = 0;
-    float pd;
-    int rad = 10;
+    float bestangle = 0.0;
+    float bestscore = 0.0;
+    int radius = 10;
+    float astep = PI/8.0;
 
     fvec = new PVector (0, 0);
 
-    for (float angle = -PI/2; angle <= PI/2; angle += anglestep) {
-      score = 0;
+    for (float angle = -PI/2.0; angle <= PI/2.0; angle += astep) {
+      score = 0.0;
       tvec = this.vel.copy();
-      tvec.mult(rad);
+      tvec.mult(radius);
       tvec.rotate(angle);
       tpos = this.pos.copy();
       tpos.add(tvec);
-      for (int i = phero.size()-1; i >= 0; i--) {
-        ppos = phero.get(i).getPos();
-        pd = PVector.dist(tpos, ppos);
-        if ((pd <= rad) && (pd > 1)) {
-          score += phero.get(i).lifespan;
-        }
+
+      score = scorePhero(tpos, radius);
+      fvec = scoreFood(tpos, radius).copy();
+      if (fvec.mag() > 0) {
+        score += 5000.0;
       }
-      for (Food currf : food) {
-        if (currf.isEmpty()) {
-          continue; // skip empty stack of food
-        }
-        d = rad + (currf.getDiam() / 2);
-        pd = PVector.dist(tpos, currf.pos);
-        if (d > pd) {
-          score += 5000 / (d - pd);
-          fvec = PVector.sub(currf.pos, this.pos);
-          break;
-        }
-      }
+
       if (score > bestscore) {
         bestscore = score;
         bestangle = angle;     
@@ -200,46 +219,42 @@ class Ant {
     }
   }
 
-  void leavePhero() {
-    float px;
-    float py; 
-    float ls;
-    float anglestep;
+  int hasPhero (PVector testpos) {
     PVector ppos;
+    for (int i = phero.size()-1; i >= 0; i--) {
+      ppos = phero.get(i).getPos();
+      if (PVector.dist(testpos, ppos) < 0.1) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  void incrPhero(int tidx, float amt) {
+    float currls = phero.get(tidx).lifespan;
+    currls += amt;
+    phero.get(tidx).lifespan = currls;
+  }
+
+  void leavePhero() {
+    float ls;
     PVector apos;
-    boolean found;
-    float angle;
-    float scl = 7;
-    float t;
+    int idx;
 
     // leave a phero spot at current ant position but also around that position
     // with a gradient function of the distance from center spot.
-    for (int r = 0; r < pheroRadius; r++) {
-      anglestep = (r == 0) ? 2*PI : PI/(r*scl);
-      t = (r == 0) ? 0.00001 : 0;
-      for (int j = 0; j < ((r*scl)+t); j++) {
-        angle = j*anglestep;
-        found = false;
-        px = this.pos.x + (r * cos(angle));
-        py = this.pos.y + (r * sin(angle));
-        apos = new PVector(round(px), round(py));
-        ls = pheroLifespanMax / (1 + (r*r));
-        if (ls < 1) {
-          break; // if lifespan too small, don't bother creating a pheromone spot
+    for (int dx = -pheroRadius; dx <= pheroRadius; dx++) {
+      for (int dy = -pheroRadius; dy <= pheroRadius; dy++) {
+        apos = new PVector(round(dx+this.pos.x), round(dy+this.pos.y));
+        ls = pheroLifespanMax / (1.0 + abs(dx*dy));
+        if (ls < 1.0) {
+          continue; // if lifespan too small, don't bother creating a pheromone spot
         }
-        // else look into phero list to see if a phero already exists at that point
-        for (int i = phero.size()-1; i >= 0; i--) {
-          ppos = phero.get(i).getPos();
-          // if it does exist, increase it
-          if (PVector.dist(apos, ppos) < 1) {
-            phero.get(i).lifespan += ls;
-            found = true;
-            break; // point already found, no need to look into the rest of the list
-          }
-        }
-        // if none found, then leave a brand new pheromone point
-        if (!found) {
-          phero.add(new Phero(apos, pheroRadius, ls));
+        idx = hasPhero(apos);
+        if (idx >= 0) {
+          incrPhero(idx, ls);
+        } else {
+          phero.add(new Phero(apos, ls));
         }
       }
     }
@@ -311,6 +326,7 @@ class Ant {
   void show () {
     strokeWeight(1);
     stroke(64, 16, 0);
+    ellipseMode(CENTER);
     if (this.avoiding) {
       fill(127, 127, 127);         // gray: being rerouted to avoid an obstacle
     } else if (this.searchFood) {
@@ -322,8 +338,12 @@ class Ant {
     } else {
       fill(255, 255, 0);           // yellow: found food, go back home directly
     }
-    ellipse(this.pos.x, this.pos.y, this.diam, this.diam);
-    line(this.pos.x, this.pos.y, (this.pos.x+(10*this.vel.x)), (this.pos.y+(10*this.vel.y)));
+    pushMatrix();
+    translate(this.pos.x, this.pos.y);
+    line(0, 0, (6*this.vel.x), (6*this.vel.y));
+    rotate(this.vel.heading());
+    ellipse(0, 0, this.diam, this.diam/2);
+    popMatrix();
   }
 
   void run() {
